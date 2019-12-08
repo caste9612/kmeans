@@ -124,12 +124,12 @@ data_assignments[index]=best_cluster;
 __global__ void assign_clustersModified(const float* __restrict__ data_x,
   const float* __restrict__ data_y,
   const float* __restrict__ data_z,
-  float*  data_assignments,
-  int data_size,
-  const float* __restrict__ means_x,
-  const float* __restrict__ means_y,
-  const float* __restrict__ means_z,
-  const  int numberOfCluster) {
+  const int  data_size,
+  float*  means_x,
+  float*  means_y,
+  float*  means_z,
+  float* means_assignments,
+  const int  numberOfClusters) {
 
 
     const int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -137,22 +137,34 @@ __global__ void assign_clustersModified(const float* __restrict__ data_x,
     if (index >= data_size) return;
 
 
-  const float x = data_x[index];
-  const float y = data_y[index];
-  const float z = data_z[index];
+    //const float x = data_x[index];
+    //const float y = data_y[index];
+    //const float z = data_z[index];
 
 
   float best_distance = FLT_MAX;
   int best_cluster=0;
-  for (int cluster = 1; cluster < numberOfCluster; cluster++) {
-    const float distance =squared_l2_distance(x, y, z, means_x[cluster],means_y[cluster],means_z[cluster]);
+  for (int cluster = 0; cluster < numberOfClusters; cluster++) {
+    const float distance =squared_l2_distance(data_x[index], data_y[index], data_z[index], means_x[cluster],means_y[cluster],means_z[cluster]);
     if (distance < best_distance) {
       best_distance = distance;
       best_cluster = cluster;
     }
   }
 
-data_assignments[index]=best_cluster;
+  for(int cluster = 0; cluster < numberOfClusters; cluster++){
+    if(cluster == best_cluster){
+      means_x[index + data_size * cluster] = data_x[index];
+      means_y[index + data_size * cluster] = data_y[index];
+      means_z[index + data_size * cluster] = data_z[index];
+      means_assignments[index + data_size * cluster] = 1;
+    }else{
+      means_x[index + data_size * cluster] = 0;
+      means_y[index + data_size * cluster] = 0;
+      means_z[index + data_size * cluster] = 0;
+      means_assignments[index + data_size * cluster] = 0;
+    }
+  }
 
 }
 
@@ -243,7 +255,7 @@ __global__ void reduceCUDA(float* g_idata, float* g_odata, size_t n)
     if (tid == 0) g_odata[blockIdx.x] = sdata[0];
 }
 
-*/
+
 
 
 
@@ -279,10 +291,10 @@ float GPUReduction(float* dA, size_t N)
     return tot;
 }
 
-/*
+*/
 
 template<size_t blockSize>
-__global__ void reduction( float*  data_x,
+__global__ void reductionModified( float*  data_x,
   float*  data_y,
   float*  data_z,
   float*  data_assignments,
@@ -290,41 +302,28 @@ __global__ void reduction( float*  data_x,
   float* dataCopy_y,
   float* dataCopy_z,
   float* dataCopy_assignments,
-  size_t data_size) {
+  size_t data_size,
+  int numberOfClusters) {
 
-  size_t tid = threadIdx.x;
-  size_t i = blockIdx.x*(blockSize) + tid;
-  size_t gridSize = blockSize*gridDim.x;
+    size_t tid = threadIdx.x;
+    size_t i = blockIdx.x*(blockSize) + tid;
+    size_t gridSize = blockSize*gridDim.x;
 
-  __shared__ float sdata [data_size * 4];
+    __shared__  float sdata [BLOCKSIZE*4] ;
 
-  int x = 0;
-  int y = data_size;
-  int z = data_size * 2;
-  int ce = data_size * 3;
+    for(int cluster = 0; cluster<numberOfClusters; cluster++){
 
-  for(int cluster = 0; cluster<numberOfClusters; cluster++){
+      int x = 0;
+      int y = data_size;
+      int z = data_size * 2;
+      int ce = data_size * 3;
 
-    if (mode == 0){
-    if(i < data_size){
-      if (data_assignments[i] != cluster){
-        sdata[i + x] = 0;
-        sdata[i + y] = 0;
-        sdata[i + z] = 0;
-        sdata[i + ce] = 0;
-      }else{
-        sdata[i + x] = dataCopy_x[i];
-        sdata[i + y] = dataCopy_y[i];
-        sdata[i + z] = dataCopy_z[i];
-        sdata[i + ce]=1;
-      }
+      if(i < data_size){
+      sdata[i + x] = data_x[i + data_size * cluster ];
+      sdata[i + y] = data_y[i + data_size * cluster ];
+      sdata[i + z] = data_z[i + data_size * cluster ];
+      sdata[i + ce]= data_assignments[i + data_size * cluster ];
     }
-  }else{
-    sdata[i + x] = dataCopy_x[i];
-    sdata[i + y] = dataCopy_y[i];
-    sdata[i + z] = dataCopy_z[i];
-    sdata[i + ce]= dataCopy_assignments[i];
-  }
 
     __syncthreads();
 
@@ -369,17 +368,40 @@ __global__ void reduction( float*  data_x,
       warpReduce<blockSize>(sdata, tid + y);
       warpReduce<blockSize>(sdata, tid + z);
       warpReduce<blockSize>(sdata, tid + ce);
-    } __syncthreads
+    } __syncthreads();
 
     if (tid == 0){
       //const int cluster_index = blockIdx.x * numberOfClusters + cluster;
-      data_x[blockIdx.x] = sdata[x];
-      data_y[blockIdx.x] = sdata[y];
-      data_z[blockIdx.x] = sdata[z];
-      data_assignments[blockIdx.x] = sdata[ce];
+      dataCopy_x[blockIdx.x + gridDim.x * cluster] = sdata[x];
+      dataCopy_y[blockIdx.x + gridDim.x * cluster] = sdata[y];
+      dataCopy_z[blockIdx.x + gridDim.x * cluster] = sdata[z];
+      dataCopy_assignments[blockIdx.x + gridDim.x * cluster] = sdata[ce];
     } 
   }
 }
+
+__global__ void divideStep( float*  dmx,
+  float*  dmy,
+  float*  dmz,
+  float*  dma,
+  float*  tmpx,
+  float* tmpy,
+  float* tmpz,
+  float* tmpa,
+  size_t data_size,
+  int numberOfClusters) {
+
+    int count = (int)tmpa[threadIdx.x];
+    if(count < 1){
+      count = 1;
+    }
+
+
+    dmx[threadIdx.x] /= count;
+    dmy[threadIdx.x] /= count;
+    dmz[threadIdx.x] /= count;
+
+  }
 /*
 
 
@@ -588,8 +610,8 @@ int main(int argc, char **argi){
  
 
   //GPU initialization
-  const int threads = 1024;
-  const int blocks = (number_of_elements + threads + 1) / (threads);
+  //const int threads = 1024;
+  //const int blocks = (number_of_elements + threads + 1) / (threads);
 
   std::cout<< "\n\n image processing...\n\n";
 
@@ -598,7 +620,7 @@ int main(int argc, char **argi){
 	double duration;
   start = std::clock();
 
-  blocksPerGrid   = std::ceil((1.*number_of_elements) / BLOCKSIZE);
+  size_t blocksPerGrid = std::ceil((1.*number_of_elements) / BLOCKSIZE);
 
 
 	//KMEANS
@@ -607,74 +629,86 @@ int main(int argc, char **argi){
     assign_clustersModified<<<blocksPerGrid, BLOCKSIZE>>>(d_data.x,
       d_data.y,
       d_data.z,
-      d_data.assignments,
-      h_x.size(),
+      number_of_elements,
       d_means.x,
       d_means.y,
       d_means.z,
+      d_means.assignments,
       numberOfClusters);checkCUDAError("Error during assign cluster ");
 
     cudaDeviceSynchronize();
 
-    //for ognli cluster chiamare una reduction che con la logica attuale , grazie alla mode, popola il vettore 
-    //shared opportunamente,la la riduzine e salva i dati, utilizzare esternamente il ciclo do while
-    //in teoria alla fine dell if, dentro d_data.x dovrebbe esserci la somma desiderata e similmente per gli altri attributi.
-    //il main dunque potrebbe occuparsi di fare il max fra 1 e d_data.assignments[0], dividere il valore  e metterlo dentro d_means[cluster]
-    //per poi iterate al secondo cluster e cosi via.
+    //riduci
+    size_t n = number_of_elements;
 
-    //una possibile alternativca sarebbe quella di salvare i risultati delle reduction con il cluster index commentato ma non fare il do while nel 
-    //main e trovare invece il modo di processare i risultati parziali della prima reduction a costo di perdere generalizzazione del codice
-    //tipo tenendo conto di quanti blocchi si fanno la prima volta e andando ad usare opportunamente gli indici nella seconda iterazione
-    //(es: in questo caso i primi numberOfClusters * blocksPerGrid elementi saranno da utilizzare e non soltanto i primi blocksPerGrid com'e ora)
-
-    for(int cluster = 0; cluster < numberOfClusters cluster ++){
-
-      //popola
-
-      populate<<<blocks,threads>>>(d_data.x,
-        d_data.y,
-        d_data.z,
-        d_data.assignments,
-        cop)
-
-      //riduci
-      size_t n = number_of_elements;
-      size_t blocksPerGrid = std::ceil((1.*n) / BLOCKSIZE);
+    float* tmpx;
+    cudaMalloc(&tmpx, sizeof(float) * blocksPerGrid * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
+    float* tmpy;
+    cudaMalloc(&tmpy, sizeof(float) * blocksPerGrid * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
+    float* tmpz;
+    cudaMalloc(&tmpz, sizeof(float) * blocksPerGrid * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
+    float* tmpass;
+    cudaMalloc(&tmpass, sizeof(float) * blocksPerGrid * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
 
       do{
         blocksPerGrid   = std::ceil((1.*n) / BLOCKSIZE);
   
-        reduction<BLOCKSIZE><<<blocksPerGrid,BLOCKSIZE>>>(d_data.x,
-            d_data.y,
-            d_data.z,
-            d_data.assignments,
-            d_data.x,
-            d_data.y,
-            d_data.z,
-            d_data.assignments,
+        reductionModified<BLOCKSIZE><<<blocksPerGrid,BLOCKSIZE>>>(d_means.x,
+            d_means.y,
+            d_means.z,
+            d_means.assignments,
+            tmpx,
+            tmpy,
+            tmpz,
+            tmpass,
             n,
             numberOfClusters);checkCUDAError("Error during reduction");
-  
+
+            //sostituire con funzione kernel che copia
+            cudaMemcpy(d_means.x, tmpx, sizeof(float) * blocksPerGrid * numberOfClusters, cudaMemcpyDeviceToDevice);checkCUDAError("Error copying into tmp");
+            cudaMemcpy(d_means.y, tmpy, sizeof(float) * blocksPerGrid * numberOfClusters,cudaMemcpyDeviceToDevice);checkCUDAError("Error copying into tmp");
+            cudaMemcpy(d_means.z, tmpz, sizeof(float) * blocksPerGrid * numberOfClusters,cudaMemcpyDeviceToDevice);checkCUDAError("Error copying into tmp");
+            cudaMemcpy(d_means.assignments, tmpass, sizeof(float) * blocksPerGrid * numberOfClusters,cudaMemcpyDeviceToDevice);checkCUDAError("Error copying into tmp");
+
             n = blocksPerGrid;
   
       } while (n > BLOCKSIZE);
   
-      reduction<BLOCKSIZE><<<1,blocksPerGrid * numberOfClusters>>>(dmeans_x,
-          dmeans_y,
-          dmeans_z,
-          dmeans_assignments,
-          dmeans_x,
-          dmeans_y,
-          dmeans_z,
-          dmeans_assignments,
-          blocksPerGrid * numberOfClusters,
-          numberOfClusters);checkCUDAError("Error during reduction");
-    }
+      if (n > 1){
 
-    //dividi
+        reductionModified<BLOCKSIZE><<<1,BLOCKSIZE>>>(tmpx,
+            tmpy,
+            tmpz,
+            tmpass,
+            tmpx,
+            tmpy,
+            tmpz,
+            tmpass,
+            n,
+            numberOfClusters);checkCUDAError("Error during last step reduction");
 
+            //funzione kernel che copia dentro d_means.x,y,z il contenuto di tmpx,y,z
+            //diviso il cout= std::max(1,tmpass[cluster])
 
-  
+            divideStep<<<1,numberOfClusters>>>(d_means.x,
+              d_means.y,
+              d_means.z,
+              d_means.assignments,
+              tmpx,
+              tmpy,
+              tmpz,
+              tmpass,
+              n,
+              numberOfClusters);checkCUDAError("Error during divideStep");
+        }
+
+        cudaDeviceSynchronize();
+        checkCUDAError("Error launching kernel [GPUReduction]");
+    
+        cudaFree(tmpx);
+        cudaFree(tmpy);
+        cudaFree(tmpz);
+        cudaFree(tmpass);
 
     }
   
@@ -718,4 +752,3 @@ for (int cluster = 0; cluster < numberOfClusters; cluster++){
 
 }
 
-*/
