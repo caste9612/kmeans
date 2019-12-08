@@ -120,6 +120,42 @@ data_assignments[index]=best_cluster;
 
 }
 
+
+__global__ void assign_clustersModified(const float* __restrict__ data_x,
+  const float* __restrict__ data_y,
+  const float* __restrict__ data_z,
+  float*  data_assignments,
+  int data_size,
+  const float* __restrict__ means_x,
+  const float* __restrict__ means_y,
+  const float* __restrict__ means_z,
+  const  int numberOfCluster) {
+
+
+    const int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (index >= data_size) return;
+
+
+  const float x = data_x[index];
+  const float y = data_y[index];
+  const float z = data_z[index];
+
+
+  float best_distance = FLT_MAX;
+  int best_cluster=0;
+  for (int cluster = 1; cluster < numberOfCluster; cluster++) {
+    const float distance =squared_l2_distance(x, y, z, means_x[cluster],means_y[cluster],means_z[cluster]);
+    if (distance < best_distance) {
+      best_distance = distance;
+      best_cluster = cluster;
+    }
+  }
+
+data_assignments[index]=best_cluster;
+
+}
+
 __global__ void populate( float*  data_x,
                           float*  data_y,
                           float*  data_z,
@@ -568,7 +604,7 @@ int main(int argc, char **argi){
 	//KMEANS
 	for (int iteration = 0; iteration < iterations; iteration++) {
 
-    assign_clusters<<<blocksPerGrid, BLOCKSIZE>>>(d_data.x,
+    assign_clustersModified<<<blocksPerGrid, BLOCKSIZE>>>(d_data.x,
       d_data.y,
       d_data.z,
       d_data.assignments,
