@@ -7,12 +7,15 @@ g++ -L/usr/X11R6/lib -lm -lpthread -lX11 ./src/imagesHandler.cpp ./src/ckmeans.c
 usage example:
 ./ckmeans ./testImages/car.jpg RGB 5 100
 
+
 OMP implementation 
 -----------------------------------
 
+compiler settings:
+g++ -L/usr/X11R6/lib -lm -lpthread -lX11 -fopenmp ./src/imagesHandler.cpp ./src/ompKmeans.cpp -o ompkmeans  
 
-
-
+usage example:
+./ompkmeans ./testImages/car.jpg RGB 5 100 
 
 
 CUDA implementation
