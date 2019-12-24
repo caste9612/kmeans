@@ -44,7 +44,7 @@ public:
 
 	std::vector<int> inputParamAcquisition(char **argi);
 
-	void dataAcquisition(std::vector<float> &h_x,std::vector<float> &h_y,std::vector<float> &h_z, std::vector<float> &h_assignments);
+	void dataAcquisition(std::vector<float> &h_x,std::vector<float> &h_y,std::vector<float> &h_z);
 
 	void disp(int* assignedPixels, std::vector<int> clusterColorR, std::vector<int> clusterColorG, std::vector<int> clusterColorB);
 };

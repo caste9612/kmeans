@@ -77,7 +77,7 @@ std::vector<int> imagesHandler::inputParamAcquisition(char **argi){
 
 
 
-void imagesHandler::dataAcquisition(std::vector<float> &h_x,std::vector<float> &h_y,std::vector<float> &h_z, std::vector<float> &h_assignments){
+void imagesHandler::dataAcquisition(std::vector<float> &h_x,std::vector<float> &h_y,std::vector<float> &h_z){
 
 	int n = fileName.length();
 	char file[n + 1];
@@ -91,7 +91,6 @@ void imagesHandler::dataAcquisition(std::vector<float> &h_x,std::vector<float> &
 					h_x[i * (this->rows) + j]=(float)inputImage(i,j,0);
 					h_y[i * (this->rows) + j]=(float)(inputImage(i,j,1)*255);
 					h_z[i * (this->rows) + j]=(float)(inputImage(i,j,2)*255);
-					h_assignments[i * (this->rows) + j]=(float)0;
 				}
 			}
 	}
@@ -103,7 +102,6 @@ void imagesHandler::dataAcquisition(std::vector<float> &h_x,std::vector<float> &
 					h_x[i * (this->rows) + j]=(float)inputImage(i,j,0);
 					h_y[i * (this->rows) + j]=(float)inputImage(i,j,1);
 					h_z[i * (this->rows) + j]=(float)inputImage(i,j,2);
-					h_assignments[i * (this->rows) + j]=(float)0;
 				}
 			}
 	}
@@ -115,7 +113,6 @@ void imagesHandler::dataAcquisition(std::vector<float> &h_x,std::vector<float> &
 					h_x[i * (this->rows) + j]=(float)inputImage(i,j,0);
 					h_y[i * (this->rows) + j]=(float)inputImage(i,j,1);
 					h_z[i * (this->rows) + j]=(float)inputImage(i,j,2);
-					h_assignments[i * (this->rows) + j]=(float)0;
 				}
 			}
 	}
@@ -127,7 +124,6 @@ void imagesHandler::dataAcquisition(std::vector<float> &h_x,std::vector<float> &
 					h_x[i * (this->rows) + j]=(float)inputImage(i,j,0);
 					h_y[i * (this->rows) + j]=(float)(inputImage(i,j,1)*100);
 					h_z[i * (this->rows) + j]=(float)(inputImage(i,j,2)*100);
-					h_assignments[i * (this->rows) + j]=(float)0;
 				}
 			}
 	}
@@ -139,7 +135,6 @@ void imagesHandler::dataAcquisition(std::vector<float> &h_x,std::vector<float> &
 					h_x[i * (this->rows) + j]=(float)inputImage(i,j,0);
 					h_y[i * (this->rows) + j]=(float)(inputImage(i,j,1)*100);
 					h_z[i * (this->rows) + j]=(float)(inputImage(i,j,2)*100);
-					h_assignments[i * (this->rows) + j]=(float)0;
 				}
 			}
 	}
@@ -150,7 +145,6 @@ void imagesHandler::dataAcquisition(std::vector<float> &h_x,std::vector<float> &
 				h_x[i * (this->rows) + j]=(float)inputImage(i,j,0);
 				h_y[i * (this->rows) + j]=(float)inputImage(i,j,1);
 				h_z[i * (this->rows) + j]=(float)inputImage(i,j,2);
-				h_assignments[i * (this->rows) + j]=(float)0;
 			}
 		}
 	}

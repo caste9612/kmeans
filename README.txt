@@ -23,8 +23,12 @@ CUDA implementation
 
 compiler settings:
 nvcc -L/usr/X11R6/lib -lm -lpthread -lX11 ./src/imagesHandler.cpp ./src/cudaKmeans.cu -o cudakmeans
+nvcc -L/usr/X11R6/lib -lm -lpthread -lX11 ./src/imagesHandler.cpp ./src/fastCudaKmeans.cu -o fckm
+
 
 
 usage example:
 ./cudakmeans ./testImages/car.jpg RGB 5 100
+./fckm ./testImages/car.jpg RGB 6 150
+
 
