@@ -105,7 +105,7 @@ int main(int argc, char **argi){
 	//Data array population
 	DataFrame data(rows*columns);
 
-	handler.dataAcquisition(h_x, h_y, h_z, assignments);
+	handler.dataAcquisition(h_x, h_y, h_z);
 	for(int i=0;i<columns;i++){
 		for(int j=0;j<rows;j++){
 			Point point;
