@@ -179,7 +179,7 @@ int main(int argc, char **argi)
     std::vector<float> assignments(rows * columns);
 
 	//Data array population
-	handler.dataAcquisition(h_x, h_y, h_z, assignments);
+	handler.dataAcquisition(h_x, h_y, h_z);
     Data d_data(h_x.size(), h_x, h_y, h_z,assignments);
 
     //Random first cluster means selections

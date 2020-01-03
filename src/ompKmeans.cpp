@@ -100,7 +100,10 @@ int main(int argc, char **argi){
 	std::vector<float> h_x(rows * columns);
 	std::vector<float> h_y(rows * columns);
 	std::vector<float> h_z(rows * columns);
-    std::vector<float> assignments(rows * columns);
+  std::vector<float> h_assignments(rows * columns);
+  for(int i=0;i<rows*columns;i++){
+    h_assignments[i]=0;
+  }
 	
 	//Data array population
 	DataFrame data(rows*columns);

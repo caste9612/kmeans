@@ -97,12 +97,14 @@ int main(int argc, char **argi){
 	std::vector<float> h_x(rows * columns);
 	std::vector<float> h_y(rows * columns);
 	std::vector<float> h_z(rows * columns);
-    std::vector<float> assignments(rows * columns);
-	
+  std::vector<float> h_assignments(rows * columns);
+  for(int i=0;i<rows*columns;i++){
+    h_assignments[i]=0;
+  }	
 	//Data array population
 	DataFrame data(rows*columns);
 
-	handler.dataAcquisition(h_x, h_y, h_z, assignments);
+	handler.dataAcquisition(h_x, h_y, h_z);
 	for(int i=0;i<columns;i++){
 		for(int j=0;j<rows;j++){
 			Point point;
@@ -117,12 +119,13 @@ int main(int argc, char **argi){
 
 	//Processa i dati e cronometra
 	std::vector<int> assignedPixels;
-	std::cout<<"image processing..."<<std::endl<<std::endl<<std::endl;
+	std::cout<< "\n\n image processing...\n\n";
 
 	//clock initialization
 	std::clock_t start;
 	double duration;
-	start = std::clock();
+  start = std::clock();
+
 
 	//Data processing
 	std::vector<int> clustColorR(numberOfClusters);
@@ -132,7 +135,7 @@ int main(int argc, char **argi){
 	assignedPixels = k_means(data, numberOfClusters, iterations, clustColorR, clustColorG, clustColorB);
 
 	duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-	std::cout<< "TEMPO DI PROCESSAMENTO IMMAGINE: "<< duration << " s" <<'\n';
+  std::cout<< "PROCESSING TIME: "<< duration << " s" <<'\n';
 
 
 	int* ap = &assignedPixels[0];
