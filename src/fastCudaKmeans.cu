@@ -176,12 +176,16 @@ __global__ void reductionModified(const float* __restrict__  data_x,
         i += gridSize;
     } __syncthreads();
 
+    /*
+
     if (blockSize >= 1024) { if (tid < 512) {
       sdata[tid + x] += sdata[tid + x + 512]; 
       sdata[tid + y] += sdata[tid + y + 512]; 
       sdata[tid + z] += sdata[tid + z + 512]; 
       sdata[tid + ce] += sdata[tid + ce + 512]; 
     } __syncthreads(); }
+
+    */
 
     if (blockSize >=  512) { if (tid < 256) { 
       sdata[tid + x] += sdata[tid + x + 256]; 
@@ -204,8 +208,7 @@ __global__ void reductionModified(const float* __restrict__  data_x,
       sdata[tid + ce] += sdata[tid + ce + 64];      
     } __syncthreads(); }
 
-    if (tid < 32){
-      warpReduce<blockSize>(sdata, tid + x);
+    if (tid < 64){warpReduce<blockSize>(sdata, tid + x);
       warpReduce<blockSize>(sdata, tid + y);
       warpReduce<blockSize>(sdata, tid + z);
       warpReduce<blockSize>(sdata, tid + ce);
@@ -330,7 +333,7 @@ int main(int argc, char **argi){
 
     cudaDeviceSynchronize();
 
-    //riduci
+    //reduction
     size_t n = number_of_elements;
 
     do{
@@ -349,7 +352,6 @@ int main(int argc, char **argi){
           
         cudaDeviceSynchronize();checkCUDAError("Error on do-while loop [GPUReduction]");
 
-        //sostituire con funzione kernel che copia
         cudaMemcpy(d_means.x, tmpx, sizeof(float) * blocksPerGrid * numberOfClusters, cudaMemcpyDeviceToDevice);checkCUDAError("Error copying into tmpx");
         cudaMemcpy(d_means.y, tmpy, sizeof(float) * blocksPerGrid * numberOfClusters,cudaMemcpyDeviceToDevice);checkCUDAError("Error copying into tmpy");
         cudaMemcpy(d_means.z, tmpz, sizeof(float) * blocksPerGrid * numberOfClusters,cudaMemcpyDeviceToDevice);checkCUDAError("Error copying into tmpz");
