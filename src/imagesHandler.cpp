@@ -164,43 +164,9 @@ void imagesHandler::disp(int* assignedPixels, std::vector<int> clusterColorR, st
 
 	for(int i=0;i<(this->columns);i++){
 	  for(int j=0;j<(this->rows);j++){
-		switch (assignedPixels[i * (this->rows) + j]){
-		  case 0:
-			outputImage(i,j,0) = clusterColorR[0];
-			outputImage(i,j,1) = clusterColorG[0];
-			outputImage(i,j,2) = clusterColorB[0];
-			break;
-		  case 1:
-			outputImage(i,j,0) = clusterColorR[1];
-			outputImage(i,j,1) = clusterColorG[1];
-			outputImage(i,j,2) = clusterColorB[1];
-			break;
-		  case 2:
-			outputImage(i,j,0) = clusterColorR[2];
-			outputImage(i,j,1) = clusterColorG[2];
-			outputImage(i,j,2) = clusterColorB[2];
-			break;
-		  case 3:
-			outputImage(i,j,0) = clusterColorR[3];
-			outputImage(i,j,1) = clusterColorG[3];
-			outputImage(i,j,2) = clusterColorB[3];
-			break;
-		  case 4:
-			outputImage(i,j,0) = clusterColorR[4];
-			outputImage(i,j,1) = clusterColorG[4];
-			outputImage(i,j,2) = clusterColorB[4];
-			break;
-		  case 5:
-			outputImage(i,j,0) = clusterColorR[5];
-			outputImage(i,j,1) = clusterColorG[5];
-			outputImage(i,j,2) = clusterColorB[5];
-			break;
-		  default:
-			outputImage(i,j,0) = clusterColorR[6];
-			outputImage(i,j,1) = clusterColorG[6];
-			outputImage(i,j,2) = clusterColorB[6];
-			break;
-		  }
+			outputImage(i,j,0) = clusterColorR[assignedPixels[i*(this->rows)+j]];
+			outputImage(i,j,1) = clusterColorG[assignedPixels[i*(this->rows)+j]];
+			outputImage(i,j,2) = clusterColorB[assignedPixels[i*(this->rows)+j]];
 	  }
 	}
 
