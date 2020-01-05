@@ -2,6 +2,7 @@
 #include <omp.h>
 #include <sys/time.h>
 
+
 struct Point{
   float x{0}, y{0}, z{0};
 };
@@ -125,8 +126,8 @@ int main(int argc, char **argi){
 	std::cout<<"image processing..."<<std::endl<<std::endl<<std::endl;
 
 	//clock initialization (openmp ad hoc)
-    struct timeval start, end;
-    gettimeofday(&start, NULL);
+  struct timeval start, end;
+  gettimeofday(&start, NULL);
 
 
 	//Data processing
@@ -136,13 +137,13 @@ int main(int argc, char **argi){
 
 	assignedPixels = k_means(data, numberOfClusters, iterations, clustColorR, clustColorG, clustColorB);
 
-	gettimeofday(&end, NULL);
 
-    long delta = ((end.tv_sec  - start.tv_sec) * 1000000u + 
-            end.tv_usec - start.tv_usec) / 1.e6;
+  gettimeofday(&end, NULL);
 
-	std::cout<< "TEMPO DI PROCESSAMENTO IMMAGINE: "<< delta << " s" <<'\n';
+  long delta = ((end.tv_sec  - start.tv_sec) * 1000000u + 
+          end.tv_usec - start.tv_usec) / 1.e6;
 
+  std::cout<< "PROCESSING TIME: "<< delta << " s" <<'\n';
 
 	int* ap = &assignedPixels[0];
 

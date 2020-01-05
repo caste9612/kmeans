@@ -1,13 +1,3 @@
-/*
- ============================================================================
- Name        : cudaKmeans.cu
- Author      : Antonio&Michela
- Version     :
- Copyright   : Your copyright notice
- Description : CUDA compute reciprocals
- ============================================================================
- */
-
 #include "imagesHandler.h"
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
@@ -20,11 +10,9 @@
 #include <string>
 
 
-
 struct Data {
 
   explicit Data(int size) : size(size), bytes(size * sizeof(float)){
-
     cudaMalloc(&x, bytes);
     cudaMalloc(&y, bytes);
     cudaMalloc(&z, bytes);

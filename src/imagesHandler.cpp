@@ -25,6 +25,9 @@ std::vector<int> imagesHandler::inputParamAcquisition(char **argi){
 	std::string mode = argi[2];
 	std:: string noc = argi[3];
 	std:: string iter = argi[4];
+	std:: string dispImages =  std::string("not disp");
+	if(argi[5]!=NULL)dispImages = argi[5];
+
 
 	try {
 	  std::size_t pos;
@@ -50,6 +53,18 @@ std::vector<int> imagesHandler::inputParamAcquisition(char **argi){
 	  std::cerr << "Number out of range: " << iter << '\n';
 	}
 
+	try {
+	  std::size_t pos;
+	  this->dispImages = std::stoi(noc, &pos);
+	  if (pos < noc.size()) {
+	    std::cerr << "Trailing characters after number: " << noc << '\n';
+	  }
+	} catch (std::invalid_argument const &ex) {
+	  std::cerr << "Invalid number: " << noc << '\n';
+	} catch (std::out_of_range const &ex) {
+	  std::cerr << "Number out of range: " << noc << '\n';
+	}
+
 
 	std::cout <<"selected file: "<< fileName << std::endl;
 	std::cout <<"mode: "<< mode << std::endl;
@@ -59,6 +74,7 @@ std::vector<int> imagesHandler::inputParamAcquisition(char **argi){
 	
 	this->mode = mode;
 	this->fileName = fileName;
+	this->dispImages = dispImages;
 
 	int n = fileName.length();
 	char file[n + 1];
@@ -157,8 +173,7 @@ void imagesHandler::disp(int* assignedPixels, std::vector<int> clusterColorR, st
 	std::strcpy(file, fileName.c_str());
 	CImg <unsigned char> inputImage = CImg<>(file);
 
-	CImgDisplay draw_disp(this->columns,this->rows,"Clusterized Image");
-	CImgDisplay draw_dispO(this->columns,this->rows,"Original Image");
+	
 
 	CImg<unsigned char> outputImage(this->columns,this->rows,1,3);
 
@@ -171,17 +186,28 @@ void imagesHandler::disp(int* assignedPixels, std::vector<int> clusterColorR, st
 	}
 
 	//display loop
-	while (!draw_disp.is_closed() && !draw_disp.is_keyESC() && !draw_disp.is_keyQ()
-			&& !draw_dispO.is_closed() && !draw_dispO.is_keyESC() && !draw_dispO.is_keyQ()) {
+	if(this->dispImages.compare("display")==0){
 
-		inputImage.display(draw_dispO);
-		outputImage.display(draw_disp);
+		CImgDisplay draw_disp(this->columns,this->rows,"Clusterized Image");
+		CImgDisplay draw_dispO(this->columns,this->rows,"Original Image");
 
-		// Temporize event loop
-		cimg::wait(20);
+		while (!draw_disp.is_closed() && !draw_disp.is_keyESC() && !draw_disp.is_keyQ()
+				&& !draw_dispO.is_closed() && !draw_dispO.is_keyESC() && !draw_dispO.is_keyQ()) {
+
+			inputImage.display(draw_dispO);
+			outputImage.display(draw_disp);
+
+			// Temporize event loop
+			cimg::wait(20);
+		}
 	}
 	outputImage.normalize(0, 255);
-	outputImage.save("output.jpg");
+
+	std::string tmp = this->fileName + "CLUSTERIZED.jpg";
+	n = tmp.length();
+	char file1[n + 1];
+	std::strcpy(file1, tmp.c_str());
+	outputImage.save(file1);
 
 }
 

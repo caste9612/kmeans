@@ -5,7 +5,9 @@ compiler settings:
 g++ -L/usr/X11R6/lib -lm -lpthread -lX11 ./src/imagesHandler.cpp ./src/ckmeans.cpp -o ckmeans
 
 usage example:
+./ckmeans ./testImages/car.jpg RGB 5 100 display
 ./ckmeans ./testImages/car.jpg RGB 5 100
+
 
 
 OMP implementation 
@@ -15,7 +17,7 @@ compiler settings:
 g++ -L/usr/X11R6/lib -lm -lpthread -lX11 -fopenmp ./src/imagesHandler.cpp ./src/ompKmeans.cpp -o ompkmeans  
 
 usage example:
-./ompkmeans ./testImages/car.jpg RGB 5 100 
+./ompkmeans ./testImages/car.jpg RGB 5 100 [display]
 
 
 CUDA implementation
@@ -28,7 +30,7 @@ nvcc -L/usr/X11R6/lib -lm -lpthread -lX11 ./src/imagesHandler.cpp ./src/fastCuda
 
 
 usage example:
-./cudakmeans ./testImages/car.jpg RGB 5 100
-./fastCudaKmeans ./testImages/car.jpg RGB 5 100
+./cudakmeans ./testImages/car.jpg RGB 5 100 [display]
+./fastCudaKmeans ./testImages/car.jpg RGB 5 100 [display]
 
 

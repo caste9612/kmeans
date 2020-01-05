@@ -34,6 +34,7 @@ private:
 	int rows;
 	std::string fileName;
 	std::string mode;
+	std::string dispImages;
 
 
 

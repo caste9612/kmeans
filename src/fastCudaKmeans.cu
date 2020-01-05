@@ -57,6 +57,7 @@ struct Data {
   float* y{nullptr};
   float* z{nullptr};
   float* assignments{nullptr};
+  
   int size{0};
   int bytes{0};
 
@@ -176,8 +177,6 @@ __global__ void reductionModified(const float* __restrict__  data_x,
         i += gridSize;
     } __syncthreads();
 
-    /*
-
     if (blockSize >= 1024) { if (tid < 512) {
       sdata[tid + x] += sdata[tid + x + 512]; 
       sdata[tid + y] += sdata[tid + y + 512]; 
@@ -185,7 +184,6 @@ __global__ void reductionModified(const float* __restrict__  data_x,
       sdata[tid + ce] += sdata[tid + ce + 512]; 
     } __syncthreads(); }
 
-    */
 
     if (blockSize >=  512) { if (tid < 256) { 
       sdata[tid + x] += sdata[tid + x + 256]; 
@@ -208,7 +206,8 @@ __global__ void reductionModified(const float* __restrict__  data_x,
       sdata[tid + ce] += sdata[tid + ce + 64];      
     } __syncthreads(); }
 
-    if (tid < 64){warpReduce<blockSize>(sdata, tid + x);
+    if (tid < 32){
+      warpReduce<blockSize>(sdata, tid + x);
       warpReduce<blockSize>(sdata, tid + y);
       warpReduce<blockSize>(sdata, tid + z);
       warpReduce<blockSize>(sdata, tid + ce);
@@ -287,13 +286,13 @@ int main(int argc, char **argi){
   size_t blocksPerGridFixed = std::ceil((1.*number_of_elements) / BLOCKSIZE);
 
   float* tmpx;
-    cudaMalloc(&tmpx, sizeof(float) * blocksPerGridFixed * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
-    float* tmpy;
-    cudaMalloc(&tmpy, sizeof(float) * blocksPerGridFixed * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
-    float* tmpz;
-    cudaMalloc(&tmpz, sizeof(float) * blocksPerGridFixed * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
-    float* tmpass;
-    cudaMalloc(&tmpass, sizeof(float) * blocksPerGridFixed * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
+  cudaMalloc(&tmpx, sizeof(float) * blocksPerGridFixed * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
+  float* tmpy;
+  cudaMalloc(&tmpy, sizeof(float) * blocksPerGridFixed * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
+  float* tmpz;
+  cudaMalloc(&tmpz, sizeof(float) * blocksPerGridFixed * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
+  float* tmpass;
+  cudaMalloc(&tmpass, sizeof(float) * blocksPerGridFixed * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
 
   std::cout<< "\n\n image processing...\n\n";
 
