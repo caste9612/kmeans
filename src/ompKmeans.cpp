@@ -37,7 +37,7 @@ std::vector<int> k_means(const DataFrame& data,int k,int number_of_iterations, s
   //For each iteration (user input)
   for (int iteration = 0; iteration < number_of_iterations; ++iteration) {
     //Find assignemnts
-    #pragma omp parallel for 
+  #pragma omp parallel for schedule(static,1)
     for (int point = 0; point < data.size(); point++) {
       float best_distance = FLT_MAX;
       int best_cluster = 0;
@@ -54,7 +54,7 @@ std::vector<int> k_means(const DataFrame& data,int k,int number_of_iterations, s
     //Sum values and count points for each cluster
     DataFrame new_means(k);
     std::vector<int> counts(k, 0);
-    #pragma omp parallel for
+  #pragma omp parallel for schedule(static,1)
     for (int point = 0; point < data.size(); ++point) {
       const auto cluster = assignments[point];
       new_means[cluster].x += data[point].x;
@@ -64,6 +64,7 @@ std::vector<int> k_means(const DataFrame& data,int k,int number_of_iterations, s
     }
 
     //Divide by the count found to calculate new means
+  #pragma omp parallel for
     for (int cluster = 0; cluster < k; cluster++) {
       // Turn 0/0 into 0/1 to avoid zero division.
       const auto count = std::max<int>(1, counts[cluster]);
@@ -72,6 +73,8 @@ std::vector<int> k_means(const DataFrame& data,int k,int number_of_iterations, s
       means[cluster].z = new_means[cluster].z/ count;
     }
   }
+  #pragma omp parallel for
+
 	for (int cluster = 0; cluster < k; cluster++){
 
 		clustColorR[cluster]=(int)means[cluster].x;
