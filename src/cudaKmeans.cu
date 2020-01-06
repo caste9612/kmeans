@@ -88,9 +88,8 @@ __global__ void assign_clusters(const float* __restrict__ data_x,
 
 	if (index >= data_size) return;
 
-	// Let the first k threads copy over the cluster means.
+	//first k threads copy over the cluster means.
 	if (threadIdx.x < numberOfCluster) {
-		// Using a flat array where the first k entries are x and the last k are y.
 	    shared_means[threadIdx.x] = means_x[threadIdx.x];
 	    shared_means[numberOfCluster + threadIdx.x] = means_y[threadIdx.x];
 	    shared_means[numberOfCluster*2 + threadIdx.x] = means_z[threadIdx.x];
