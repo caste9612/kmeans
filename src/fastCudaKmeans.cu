@@ -172,8 +172,8 @@ __global__ void reductionModified(const float* __restrict__  data_x,
 
     for(int cluster = 0; cluster<numberOfClusters; cluster++){
       size_t tid = threadIdx.x;
-      size_t i = blockIdx.x*(blockSize) + tid;
-      size_t gridSize = blockSize*gridDim.x;
+      size_t i = blockIdx.x*(blockSize * 2) + tid;
+      size_t gridSize = blockSize* 2 *gridDim.x;
 
       int x = 0;
       int y = blockSize;
@@ -186,10 +186,10 @@ __global__ void reductionModified(const float* __restrict__  data_x,
       sdata[tid + ce] = 0;
 
       while(i < data_size){
-        sdata[tid + x] += data_x[i + data_size * cluster ];
-        sdata[tid + y] += data_y[i + data_size * cluster ];
-        sdata[tid + z] += data_z[i + data_size * cluster ];
-        sdata[tid + ce] += data_assignments[i + data_size * cluster ];
+        sdata[tid + x] += data_x[i + data_size * cluster ] + data_x[i + data_size * cluster +blockSize];
+        sdata[tid + y] += data_y[i + data_size * cluster ]+ data_y[i + data_size * cluster +blockSize];
+        sdata[tid + z] += data_z[i + data_size * cluster ]+ data_z[i + data_size * cluster +blockSize];
+        sdata[tid + ce] += data_assignments[i + data_size * cluster ] + data_assignments[i + data_size * cluster +blockSize];
         i += gridSize;
     } __syncthreads();
 
@@ -199,7 +199,6 @@ __global__ void reductionModified(const float* __restrict__  data_x,
       sdata[tid + z] += sdata[tid + z + 512]; 
       sdata[tid + ce] += sdata[tid + ce + 512]; 
     } __syncthreads(); }
-
 
     if (blockSize >=  512) { if (tid < 256) { 
       sdata[tid + x] += sdata[tid + x + 256]; 
