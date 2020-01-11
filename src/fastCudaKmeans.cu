@@ -173,7 +173,7 @@ __global__ void reductionModified(const float* __restrict__  data_x,
     for(int cluster = 0; cluster<numberOfClusters; cluster++){
       size_t tid = threadIdx.x;
       size_t i = blockIdx.x*(blockSize * 2) + tid;
-      size_t gridSize = blockSize* 2 *gridDim.x;
+      size_t gridSize = blockSize * 2 *gridDim.x;
 
       int x = 0;
       int y = blockSize;
