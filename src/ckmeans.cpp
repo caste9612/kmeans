@@ -96,10 +96,10 @@ int main(int argc, char **argi){
 	std::vector<float> h_x(rows * columns);
 	std::vector<float> h_y(rows * columns);
 	std::vector<float> h_z(rows * columns);
-  std::vector<float> h_assignments(rows * columns);
-  for(int i=0;i<rows*columns;i++){
-    h_assignments[i]=0;
-  }	
+	std::vector<float> h_assignments(rows * columns);
+	for(int i=0;i<rows*columns;i++){
+		h_assignments[i]=0;
+	}	
 
 	//Data array population
 	DataFrame data(rows*columns);
@@ -126,19 +126,19 @@ int main(int argc, char **argi){
 	std::vector<int> clustColorG(numberOfClusters);
 	std::vector<int> clustColorB(numberOfClusters);
 
-  //clock initialization
+  	//clock initialization
 	std::clock_t start;
 	double duration;
-  start = std::clock();
+  	start = std::clock();
 
 	//Data processing
 	assignedPixels = k_means(data, numberOfClusters, iterations, clustColorR, clustColorG, clustColorB);
 
 	duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
-  std::cout<< "PROCESSING TIME: "<< duration << " s" <<'\n';
+  	std::cout<< "PROCESSING TIME: "<< duration << " s" <<'\n';
 
 
 	int* ap = &assignedPixels[0];
 
-  handler.disp(ap, clustColorR, clustColorG, clustColorB);
+  	handler.disp(ap, clustColorR, clustColorG, clustColorB);
 }

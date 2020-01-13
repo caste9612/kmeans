@@ -37,7 +37,7 @@ std::vector<int> k_means(const DataFrame& data,int k,int number_of_iterations, s
   //For each iteration (user input)
   for (int iteration = 0; iteration < number_of_iterations; ++iteration) {
     //Find assignemnts
-  #pragma omp parallel for schedule(static,1)
+  #pragma omp parallel for 
     for (int point = 0; point < data.size(); point++) {
       float best_distance = FLT_MAX;
       int best_cluster = 0;
@@ -54,7 +54,7 @@ std::vector<int> k_means(const DataFrame& data,int k,int number_of_iterations, s
     //Sum values and count points for each cluster
     DataFrame new_means(k);
     std::vector<int> counts(k, 0);
-  #pragma omp parallel for schedule(static,1)
+
     for (int point = 0; point < data.size(); ++point) {
       const auto cluster = assignments[point];
       new_means[cluster].x += data[point].x;
@@ -64,7 +64,7 @@ std::vector<int> k_means(const DataFrame& data,int k,int number_of_iterations, s
     }
 
     //Divide by the count found to calculate new means
-  #pragma omp parallel for
+	#pragma omp parallel for
     for (int cluster = 0; cluster < k; cluster++) {
       // Turn 0/0 into 0/1 to avoid zero division.
       const auto count = std::max<int>(1, counts[cluster]);
@@ -73,8 +73,8 @@ std::vector<int> k_means(const DataFrame& data,int k,int number_of_iterations, s
       means[cluster].z = new_means[cluster].z/ count;
     }
   }
-  #pragma omp parallel for
-
+  
+  	#pragma omp parallel for
 	for (int cluster = 0; cluster < k; cluster++){
 
 		clustColorR[cluster]=(int)means[cluster].x;
@@ -104,10 +104,10 @@ int main(int argc, char **argi){
 	std::vector<float> h_x(rows * columns);
 	std::vector<float> h_y(rows * columns);
 	std::vector<float> h_z(rows * columns);
-  std::vector<float> h_assignments(rows * columns);
-  for(int i=0;i<rows*columns;i++){
-    h_assignments[i]=0;
-  }
+  	std::vector<float> h_assignments(rows * columns);
+	for(int i=0;i<rows*columns;i++){
+		h_assignments[i]=0;
+	}
 	
 	//Data array population
 	DataFrame data(rows*columns);
@@ -126,11 +126,11 @@ int main(int argc, char **argi){
 	//KMEANS
 
 	std::vector<int> assignedPixels;
-	std::cout<<"image processing..."<<std::endl<<std::endl<<std::endl;
+	std::cout<< "\n\n image processing...\n\n";
 
 	//clock initialization (openmp ad hoc)
-  struct timeval start, end;
-  gettimeofday(&start, NULL);
+	struct timeval start, end;
+	gettimeofday(&start, NULL);
 
 
 	//Data processing
@@ -141,12 +141,12 @@ int main(int argc, char **argi){
 	assignedPixels = k_means(data, numberOfClusters, iterations, clustColorR, clustColorG, clustColorB);
 
 
-  gettimeofday(&end, NULL);
+  	gettimeofday(&end, NULL);
 
-  long delta = ((end.tv_sec  - start.tv_sec) * 1000000u + 
+  	long delta = ((end.tv_sec  - start.tv_sec) * 1000000u + 
           end.tv_usec - start.tv_usec) / 1.e6;
 
-  std::cout<< "PROCESSING TIME: "<< delta << " s" <<'\n';
+  	std::cout<< "PROCESSING TIME: "<< delta << " s" <<'\n';
 
 	int* ap = &assignedPixels[0];
 

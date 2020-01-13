@@ -80,17 +80,17 @@ __global__ void assign_clusters(const float* __restrict__ data_x,
                                 const float* __restrict__ means_assignments,
                                 const int  numberOfClusters) {
   
-  __shared__ float shared_means[300*3];
+	__shared__ float shared_means[300*3];
 
-  const int index = blockIdx.x * blockDim.x + threadIdx.x;
+	const int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if (index >= data_size) return;
+	if (index >= data_size) return;
 
-  //first k threads copy over the cluster means.
+	//first k threads copy over the cluster means.
 	if (threadIdx.x < numberOfClusters) {
-	    shared_means[threadIdx.x] = means_x[threadIdx.x];
-	    shared_means[numberOfClusters + threadIdx.x] = means_y[threadIdx.x];
-	    shared_means[numberOfClusters*2 + threadIdx.x] = means_z[threadIdx.x];
+		shared_means[threadIdx.x] = means_x[threadIdx.x];
+		shared_means[numberOfClusters + threadIdx.x] = means_y[threadIdx.x];
+		shared_means[numberOfClusters*2 + threadIdx.x] = means_z[threadIdx.x];
 	}
 
 	// Wait for those k threads.
@@ -100,10 +100,10 @@ __global__ void assign_clusters(const float* __restrict__ data_x,
 	const float y = data_y[index];
 	const float z = data_z[index];
 
-  float best_distance = squared_l2_distance(x, y, z, shared_means[0],shared_means[numberOfClusters],shared_means[numberOfClusters*2]);
-  int best_cluster = 0;
-  for (int cluster = 1; cluster < numberOfClusters; cluster++) {
-    float distance =squared_l2_distance(x, y, z, shared_means[cluster],shared_means[numberOfClusters + cluster],shared_means[numberOfClusters*2 + cluster]);
+	float best_distance = squared_l2_distance(x, y, z,shared_means[0],shared_means[numberOfClusters],shared_means[numberOfClusters*2]);
+	int best_cluster = 0;
+	for (int cluster = 1; cluster < numberOfClusters; cluster++) {
+    	float distance =squared_l2_distance(x, y, z, shared_means[cluster],shared_means[numberOfClusters + cluster],shared_means[numberOfClusters*2 + cluster]);
     if (distance < best_distance) {
       best_distance = distance;
       best_cluster = cluster;
@@ -254,7 +254,7 @@ __global__ void divideStep(float*  dmx,
     dmx[threadIdx.x] = tmpx[threadIdx.x]/count;
     dmy[threadIdx.x] = tmpy[threadIdx.x]/count;
     dmz[threadIdx.x] = tmpz[threadIdx.x]/count;
-  }
+}
 
 
 
@@ -270,51 +270,51 @@ int main(int argc, char **argi){
 	int iterations = params[0];
 	int numberOfClusters = params[1];
 	int columns = params[2];
-  int rows = params[3];
+	int rows = params[3];
   
 	//Data array initialization
 	std::vector<float> h_x(rows * columns);
 	std::vector<float> h_y(rows * columns);
 	std::vector<float> h_z(rows * columns);
 	std::vector<float> h_assignments(rows * columns);
-  for(int i=0;i<rows*columns;i++){
-    h_assignments[i]=0;
-  }
+	for(int i=0;i<rows*columns;i++){
+		h_assignments[i]=0;
+	}
 
 	//Data array population   
-  handler.dataAcquisition(h_x, h_y, h_z);
+	handler.dataAcquisition(h_x, h_y, h_z);
 
-  int number_of_elements = h_x.size();
+	int number_of_elements = h_x.size();
 
-  Data d_data(number_of_elements, h_x, h_y, h_z,h_assignments);checkCUDAError("Error during d_data init");
-  
-  //Random first cluster means selections
-  std::random_device seed;
-  std::mt19937 rng(seed());
-  std::shuffle(h_x.begin(), h_x.end(), rng);
-  std::shuffle(h_y.begin(), h_y.end(), rng);
-  std::shuffle(h_z.begin(), h_z.end(), rng);
+	Data d_data(number_of_elements, h_x, h_y, h_z,h_assignments);checkCUDAError("Error during d_data init");
 
-  Data d_means(numberOfClusters * number_of_elements, h_x, h_y, h_z, h_assignments);checkCUDAError("Error during d_means init");
+	//Random first cluster means selections
+	std::random_device seed;
+	std::mt19937 rng(seed());
+	std::shuffle(h_x.begin(), h_x.end(), rng);
+	std::shuffle(h_y.begin(), h_y.end(), rng);
+	std::shuffle(h_z.begin(), h_z.end(), rng);
 
-  //GPU initialization
-  size_t blocksPerGridFixed = std::ceil((1.*number_of_elements) / BLOCKSIZE);
+	Data d_means(numberOfClusters * number_of_elements, h_x, h_y, h_z, h_assignments);checkCUDAError("Error during d_means init");
 
-  float* tmpx;
-  cudaMalloc(&tmpx, sizeof(float) * blocksPerGridFixed * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
-  float* tmpy;
-  cudaMalloc(&tmpy, sizeof(float) * blocksPerGridFixed * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
-  float* tmpz;
-  cudaMalloc(&tmpz, sizeof(float) * blocksPerGridFixed * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
-  float* tmpass;
-  cudaMalloc(&tmpass, sizeof(float) * blocksPerGridFixed * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
+	//GPU initialization
+	size_t blocksPerGridFixed = std::ceil((1.*number_of_elements) / BLOCKSIZE);
 
-  std::cout<< "\n\n image processing...\n\n";
+	float* tmpx;
+	cudaMalloc(&tmpx, sizeof(float) * blocksPerGridFixed * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
+	float* tmpy;
+	cudaMalloc(&tmpy, sizeof(float) * blocksPerGridFixed * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
+	float* tmpz;
+	cudaMalloc(&tmpz, sizeof(float) * blocksPerGridFixed * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
+	float* tmpass;
+	cudaMalloc(&tmpass, sizeof(float) * blocksPerGridFixed * numberOfClusters); checkCUDAError("Error allocating tmp [GPUReduction]");
+
+	std::cout<< "\n\n image processing...\n\n";
 
 	//clock initialization
 	std::clock_t start;
 	double duration;
-  start = std::clock();
+  	start = std::clock();
 
 	//KMEANS
 	for (int iteration = 0; iteration < iterations; iteration++) {
@@ -373,7 +373,7 @@ int main(int argc, char **argi){
 
         n = blocksPerGrid;
 
-    } while (n > BLOCKSIZE);
+	} while (n > BLOCKSIZE);
 
     if (n > 1){
       reductionModified<BLOCKSIZE><<<1,BLOCKSIZE>>>(tmpx,
